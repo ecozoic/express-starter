@@ -1,16 +1,57 @@
+// load environment configuration
 require('dotenv').config();
 
+// express + middleware
 const express = require('express');
 const compression = require('compression');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const errorHandler = require('errorhandler');
 
-const app = express();
-const router = express.Router();
+// mongo + redis + bluebird
+const bluebird = require('bluebird');
+const mongoose = require('mongoose');
+const redis = require('redis');
 
+mongoose.Promise = bluebird;
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
+
+// set config defaults
+// TODO: figure out MONGO_PORT issue with docker
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const MONGO_HOST = process.env.MONGO_HOST || 'localhost';
+const MONGO_PORT = process.env.MONGO_PORT || 27017;
+const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
+const REDIS_PORT = process.env.REDIS_PORT || 6379;
+
+// test mongo connection
+mongoose.connect(`mongodb://${MONGO_HOST}/app`, {
+  useMongoClient: true,
+})
+.then((db) => {
+  console.log('Connected to Mongo!');
+}, (err) => {
+  console.log('Mongo connection failed :(');
+  console.log(err);
+});
+
+// test redis connection
+const redisClient = redis.createClient({ host: REDIS_HOST, port: REDIS_PORT });
+
+redisClient.on('ready', () => {
+  console.log('Connected to Redis!');
+});
+
+redisClient.on('error', (err) => {
+  console.log('Redis connection failed :(');
+  console.log(err);
+});
+
+// setup express app
+const app = express();
+const router = express.Router();
 
 app.use(compression());
 app.use(bodyParser.json());
