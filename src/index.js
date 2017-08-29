@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const errorHandler = require('errorhandler');
 
 const app = express();
+const router = express.Router();
 
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -18,11 +19,13 @@ if (NODE_ENV === 'development') {
   app.use(morgan('tiny'));
 }
 
-app.get('/', (req, res) => {
+app.use('/', router);
+
+router.get('/', (req, res) => {
   res.json({ id: 1, message: 'Hello world!' });
 });
 
-app.get('/error', (req, res) => {
+router.get('/error', (req, res) => {
   throw Error('ABORT');
 });
 
