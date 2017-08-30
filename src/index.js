@@ -13,6 +13,8 @@ const bluebird = require('bluebird');
 const mongoose = require('mongoose');
 const redis = require('redis');
 
+const todoRouter = require('./routers/todo');
+
 mongoose.Promise = bluebird;
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
@@ -23,11 +25,12 @@ const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const MONGO_HOST = process.env.MONGO_HOST || 'localhost';
 const MONGO_PORT = process.env.MONGO_PORT || 27017;
+const MONGO_DB = process.env.MONGO_DB || 'app';
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || 6379;
 
 // test mongo connection
-mongoose.connect(`mongodb://${MONGO_HOST}/app`, {
+mongoose.connect(`mongodb://${MONGO_HOST}/${MONGO_DB}`, {
   useMongoClient: true,
 })
 .then((db) => {
@@ -51,7 +54,6 @@ redisClient.on('error', (err) => {
 
 // setup express app
 const app = express();
-const router = express.Router();
 
 app.use(compression());
 app.use(bodyParser.json());
@@ -60,15 +62,7 @@ if (NODE_ENV === 'development') {
   app.use(morgan('tiny'));
 }
 
-app.use('/', router);
-
-router.get('/', (req, res) => {
-  res.json({ id: 1, message: 'Hello world!' });
-});
-
-router.get('/error', (req, res) => {
-  throw Error('ABORT');
-});
+app.use('/api', todoRouter);
 
 app.use((req, res, next) => {
   res.status(404).send('We ain\'t found shit');
