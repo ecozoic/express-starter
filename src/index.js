@@ -20,7 +20,6 @@ bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
 // set config defaults
-// TODO: figure out MONGO_PORT issue with docker
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const MONGO_HOST = process.env.MONGO_HOST || 'localhost';
@@ -30,7 +29,7 @@ const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || 6379;
 
 // test mongo connection
-mongoose.connect(`mongodb://${MONGO_HOST}/${MONGO_DB}`, {
+mongoose.connect(`mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`, {
   useMongoClient: true,
 })
 .then((db) => {
